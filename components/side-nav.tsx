@@ -1,68 +1,98 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { id: "hero", label: "Index" },
-  { id: "signals", label: "Signals" },
-  { id: "work", label: "Experiments" },
-  { id: "principles", label: "Principles" },
-  { id: "colophon", label: "Colophon" },
+  { id: "signals",    label: "Markets" },
+  { id: "work",       label: "Categories" },
+  { id: "principles", label: "Protocol" },
 ]
 
 export function SideNav() {
   const [activeSection, setActiveSection] = useState("hero")
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id)
-          }
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiveSection(e.target.id)
         })
       },
       { threshold: 0.3 },
     )
-
     navItems.forEach(({ id }) => {
-      const element = document.getElementById(id)
-      if (element) observer.observe(element)
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
     })
-
     return () => observer.disconnect()
   }, [])
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-    }
+  const scroll = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
-    <nav className="fixed left-0 top-0 z-50 h-screen w-16 md:w-20 hidden md:flex flex-col justify-center border-r border-border/30 bg-background/80 backdrop-blur-sm">
-      <div className="flex flex-col gap-6 px-4">
-        {navItems.map(({ id, label }) => (
-          <button key={id} onClick={() => scrollToSection(id)} className="group relative flex items-center gap-3">
-            <span
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled
+          ? "bg-background/90 backdrop-blur-md border-b border-border/60"
+          : "bg-transparent border-b border-transparent",
+      )}
+    >
+      <div className="flex items-center justify-between px-6 md:px-10 h-14">
+        {/* Logo */}
+        <button
+          onClick={() => scroll("hero")}
+          className="flex items-center gap-2 group"
+        >
+          <span className="w-2 h-2 bg-accent glow-orange" />
+          <span className="font-[var(--font-display)] text-xl tracking-widest text-foreground group-hover:text-accent transition-colors duration-200">
+            PREQUEL
+          </span>
+        </button>
+
+        {/* Nav links */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => scroll(id)}
               className={cn(
-                "h-1.5 w-1.5 rounded-full transition-all duration-300",
-                activeSection === id ? "bg-accent scale-125" : "bg-muted-foreground/40 group-hover:bg-foreground/60",
-              )}
-            />
-            <span
-              className={cn(
-                "absolute left-6 font-mono text-[10px] uppercase tracking-widest opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:left-8 whitespace-nowrap",
-                activeSection === id ? "text-accent" : "text-muted-foreground",
+                "relative px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-colors duration-200",
+                activeSection === id
+                  ? "text-accent"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {label}
-            </span>
-          </button>
-        ))}
+              {activeSection === id && (
+                <span className="absolute bottom-0 left-0 right-0 h-[1px] bg-accent" />
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* CTA buttons */}
+        <div className="hidden md:flex items-center gap-2">
+          <Link
+            href="/markets"
+            className="flex items-center gap-2 bg-black border border-white px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest text-white font-semibold hover:bg-accent hover:border-accent hover:text-accent-foreground transition-all duration-200"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+            All Markets
+          </Link>
+        </div>
       </div>
-    </nav>
+    </header>
   )
 }

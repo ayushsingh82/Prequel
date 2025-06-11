@@ -201,6 +201,94 @@ describe("PreMarket", () => {
 
     expect(after - before).to.equal(reserveYes);
   });
+
+  it("double-redeem is blocked", async () => {
+    const { market, trader, resolver, usdc, viem } = await makeMarket();
+    const amountIn = parseUnits("100", 6);
+
+    const traderUsdc = await viem.getContractAt("MockUSDC", usdc.address, { client: { wallet: trader } });
+    await traderUsdc.write.approve([market.address, amountIn]);
+    const traderMarket = await viem.getContractAt("PreMarket", market.address, { client: { wallet: trader } });
+    await traderMarket.write.buy([true, amountIn, 0n]);
+
+    const testClient = await viem.getTestClient();
+    await testClient.increaseTime({ seconds: 60 * 60 * 24 + 1 });
+    await testClient.mine({ blocks: 1 });
+
+    const asResolver = await viem.getContractAt("PreMarket", market.address, { client: { wallet: resolver } });
+    await asResolver.write.resolve([1]);
+
+    await traderMarket.write.redeem();
+    // second redeem must fail — balance is zero
+    await expect(traderMarket.write.redeem()).to.be.rejected;
+  });
+
+  it("sell reverts when balance is insufficient", async () => {
+    const { market, trader, viem, usdc } = await makeMarket();
+    const amountIn = parseUnits("100", 6);
+
+    const traderUsdc = await viem.getContractAt("MockUSDC", usdc.address, { client: { wallet: trader } });
+    await traderUsdc.write.approve([market.address, amountIn]);
+    const traderMarket = await viem.getContractAt("PreMarket", market.address, { client: { wallet: trader } });
+    await traderMarket.write.buy([true, amountIn, 0n]);
+
+    const yesBal = await market.read.yesBalance([trader.account.address]);
+    // Selling more than held must revert
+    await expect(traderMarket.write.sell([true, yesBal + 1n, 0n])).to.be.rejected;
+  });
+
+  it("claimSeed reverts for non-creator", async () => {
+    const { market, other, resolver, viem } = await makeMarket();
+
+    const testClient = await viem.getTestClient();
+    await testClient.increaseTime({ seconds: 60 * 60 * 24 + 1 });
+    await testClient.mine({ blocks: 1 });
+
+    const asResolver = await viem.getContractAt("PreMarket", market.address, { client: { wallet: resolver } });
+    await asResolver.write.resolve([1]);
+
+    const asOther = await viem.getContractAt("PreMarket", market.address, { client: { wallet: other } });
+    await expect(asOther.write.claimSeed()).to.be.rejected;
+  });
+
+  it("buy and sell on NO side work symmetrically", async () => {
+    const { market, trader, viem, usdc } = await makeMarket();
+    const amountIn = parseUnits("200", 6);
+
+    const traderUsdc = await viem.getContractAt("MockUSDC", usdc.address, { client: { wallet: trader } });
+    await traderUsdc.write.approve([market.address, amountIn]);
+    const traderMarket = await viem.getContractAt("PreMarket", market.address, { client: { wallet: trader } });
+    await traderMarket.write.buy([false, amountIn, 0n]);
+
+    const noBal = await market.read.noBalance([trader.account.address]);
+    expect(noBal > amountIn).to.equal(true);
+
+    const pNo = await market.read.priceNo();
+    expect(pNo > ONE / 2n).to.equal(true);
+
+    // Sell half back and verify USDC is returned
+    const usdcBefore = await usdc.read.balanceOf([trader.account.address]);
+    await traderMarket.write.sell([false, noBal / 2n, 0n]);
+    const usdcAfter = await usdc.read.balanceOf([trader.account.address]);
+    expect(usdcAfter > usdcBefore).to.equal(true);
+  });
+
+  it("priceYes + priceNo == 1e18 after multiple trades", async () => {
+    const { market, trader, viem, usdc } = await makeMarket();
+
+    const traderUsdc = await viem.getContractAt("MockUSDC", usdc.address, { client: { wallet: trader } });
+    await traderUsdc.write.approve([market.address, parseUnits("5000", 6)]);
+    const traderMarket = await viem.getContractAt("PreMarket", market.address, { client: { wallet: trader } });
+
+    for (const amt of [50, 120, 300, 75].map((n) => parseUnits(String(n), 6))) {
+      await traderMarket.write.buy([true, amt, 0n]);
+    }
+
+    const pYes = await market.read.priceYes();
+    const pNo = await market.read.priceNo();
+    const sum = pYes + pNo;
+    expect(sum >= ONE - 1n && sum <= ONE + 1n).to.equal(true);
+  });
 });
 
 describe("PreMarketFactory", () => {

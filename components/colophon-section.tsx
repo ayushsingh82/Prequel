@@ -6,64 +6,53 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
+const links = [
+  {
+    heading: "Platform",
+    items: [
+      { label: "Trade Markets", href: "#signals" },
+      { label: "Explore Categories", href: "#work" },
+      { label: "Protocol Docs", href: "#" },
+    ],
+  },
+  {
+    heading: "Contracts",
+    items: [
+      { label: "PreMarket.sol", href: "#" },
+      { label: "PreMarketFactory.sol", href: "#" },
+      { label: "MockUSDC.sol", href: "#" },
+    ],
+  },
+  {
+    heading: "Stack",
+    items: [
+      { label: "Next.js 16", href: "#" },
+      { label: "Hardhat 2", href: "#" },
+      { label: "viem 2.x", href: "#" },
+    ],
+  },
+  {
+    heading: "Network",
+    items: [
+      { label: "Hardhat Local", href: "#" },
+      { label: "Sepolia Testnet", href: "#" },
+      { label: "Mainnet (soon)", href: "#" },
+    ],
+  },
+]
+
 export function ColophonSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
-  const footerRef = useRef<HTMLDivElement>(null)
+  const innerRef   = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!sectionRef.current) return
-
     const ctx = gsap.context(() => {
-      // Header slide in
-      if (headerRef.current) {
-        gsap.from(headerRef.current, {
-          x: -60,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
-          },
-        })
-      }
-
-      // Grid columns fade up with stagger
-      if (gridRef.current) {
-        const columns = gridRef.current.querySelectorAll(":scope > div")
-        gsap.from(columns, {
-          y: 40,
-          opacity: 0,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: gridRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
-          },
-        })
-      }
-
-      // Footer fade in
-      if (footerRef.current) {
-        gsap.from(footerRef.current, {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: footerRef.current,
-            start: "top 95%",
-            toggleActions: "play none none reverse",
-          },
-        })
-      }
+      gsap.from(innerRef.current?.children ?? [], {
+        y: 30, opacity: 0, duration: 0.7, stagger: 0.08, ease: "power3.out",
+        scrollTrigger: { trigger: innerRef.current, start: "top 88%", toggleActions: "play none none reverse" },
+      })
     }, sectionRef)
-
     return () => ctx.revert()
   }, [])
 
@@ -71,95 +60,48 @@ export function ColophonSection() {
     <section
       ref={sectionRef}
       id="colophon"
-      className="relative py-32 pl-6 md:pl-28 pr-6 md:pr-12 border-t border-border/30"
+      className="relative border-t border-border/40 py-24 px-6 md:px-16"
     >
-      {/* Section header */}
-      <div ref={headerRef} className="mb-16">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">04 / About</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">PLATFORM</h2>
+      {/* Brand row */}
+      <div className="flex items-center gap-3 mb-16">
+        <span className="w-2.5 h-2.5 bg-accent glow-orange" />
+        <span className="font-[var(--font-display)] text-3xl tracking-widest text-foreground">PREQUEL</span>
+        <span className="ml-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground border border-border px-2 py-0.5">
+          v0.1 Beta
+        </span>
       </div>
 
-      {/* Multi-column layout */}
-      <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 md:gap-12">
-        {/* Platform */}
-        <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Platform</h4>
-          <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Prequel</li>
-          </ul>
-        </div>
-
-        {/* Stack */}
-        <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Stack</h4>
-          <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Next.js</li>
-            <li className="font-mono text-xs text-foreground/80">Tailwind CSS</li>
-            <li className="font-mono text-xs text-foreground/80">Vercel</li>
-          </ul>
-        </div>
-
-        {/* Typography */}
-        <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Typography</h4>
-          <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Bebas Neue</li>
-            <li className="font-mono text-xs text-foreground/80">Inter</li>
-            <li className="font-mono text-xs text-foreground/80">Geist Mono</li>
-          </ul>
-        </div>
-
-        {/* Markets */}
-        <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Markets</h4>
-          <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Pre-Token</li>
-            <li className="font-mono text-xs text-foreground/80">Price Discovery</li>
-          </ul>
-        </div>
-
-        {/* Trading */}
-        <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Trading</h4>
-          <ul className="space-y-2">
-            <li>
-              <a
-                href="#"
-                className="font-mono text-xs text-foreground/80 hover:text-accent transition-colors duration-200"
-              >
-                Start Trading
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="font-mono text-xs text-foreground/80 hover:text-accent transition-colors duration-200"
-              >
-                Market Docs
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Year */}
-        <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Year</h4>
-          <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">2025</li>
-            <li className="font-mono text-xs text-foreground/80">Ongoing</li>
-          </ul>
-        </div>
+      {/* Link columns */}
+      <div ref={innerRef} className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
+        {links.map((col) => (
+          <div key={col.heading}>
+            <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-accent mb-4">
+              {col.heading}
+            </h4>
+            <ul className="space-y-2.5">
+              {col.items.map((item) => (
+                <li key={item.label}>
+                  <a
+                    href={item.href}
+                    className="font-mono text-xs text-muted-foreground hover:text-accent transition-colors duration-150"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
 
-      {/* Bottom copyright */}
-      <div
-        ref={footerRef}
-        className="mt-24 pt-8 border-t border-border/20 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-      >
-        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-          © 2025 Prequel. All rights reserved.
+      {/* Bottom bar */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-8 border-t border-border/30">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          © 2025 Prequel — Early price discovery for pre-token projects.
         </p>
-        <p className="font-mono text-[10px] text-muted-foreground">Early price discovery for pre-token projects.</p>
+        <p className="font-mono text-[10px] text-muted-foreground">
+          Contracts audited by tests only. Not production-ready. Do not send real funds.
+        </p>
       </div>
     </section>
   )

@@ -17,61 +17,61 @@ type Signal = {
 }
 
 const fallbackSignals: Signal[] = [
-  {
-    date: "2025.01.15",
-    title: "AI Protocol Launch",
-    note: "Pre-market trading opens for decentralized AI infrastructure token.",
-  },
-  {
-    date: "2025.01.12",
-    title: "DeFi Yield Platform",
-    note: "Early price discovery for next-generation yield aggregator.",
-  },
-  {
-    date: "2025.01.08",
-    title: "Layer 2 Scaling",
-    note: "Pre-token market for zero-knowledge rollup solution.",
-  },
-  {
-    date: "2025.01.05",
-    title: "NFT Marketplace",
-    note: "Trading opens for creator-first marketplace protocol.",
-  },
-  {
-    date: "2025.01.02",
-    title: "Gaming Infrastructure",
-    note: "Pre-market for blockchain gaming infrastructure token.",
-  },
+  { date: "2025.09.30", title: "AI Protocol Launch", note: "Will Project X launch a token by EOY?", priceYes: 0.52 },
+  { date: "2025.10.15", title: "DeFi Yield Platform", note: "Points-to-token ratio above 1:10?", priceYes: 0.61 },
+  { date: "2025.11.01", title: "Layer 2 Scaling", note: "ZK rollup mainnet before block 22M?", priceYes: 0.44 },
+  { date: "2025.08.20", title: "NFT Marketplace", note: "Creator-first marketplace TGE?", priceYes: 0.48 },
+  { date: "2025.12.01", title: "Gaming Infrastructure", note: "On-chain gaming token launch?", priceYes: 0.71 },
 ]
 
 function formatExpiry(unix: number) {
   const d = new Date(unix * 1000)
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
-    d.getDate(),
-  ).padStart(2, "0")}`
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`
 }
 
 function liveToSignal(m: LiveMarket): Signal {
   return {
     date: formatExpiry(m.expiry),
-    title: m.question,
-    note: m.resolved
-      ? "Market resolved. Final price reflected below."
-      : "On-chain pre-market. Price reflects current YES probability.",
+    title: m.question.length > 40 ? m.question.slice(0, 40) + "…" : m.question,
+    note: m.resolved ? "Resolved" : "Active",
     priceYes: m.priceYes,
     address: m.address,
   }
 }
 
+function PriceBar({ pYes }: { pYes: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      {/* YES bar */}
+      <div className="flex-1 h-1 bg-border relative overflow-hidden">
+        <div
+          className="absolute left-0 top-0 h-full bg-accent transition-all duration-700"
+          style={{ width: `${pYes * 100}%` }}
+        />
+      </div>
+      <span className="font-mono text-xs text-accent font-semibold w-10 text-right">
+        {(pYes * 100).toFixed(0)}¢
+      </span>
+      <div className="flex-1 h-1 bg-border relative overflow-hidden">
+        <div
+          className="absolute left-0 top-0 h-full bg-muted-foreground/40 transition-all duration-700"
+          style={{ width: `${(1 - pYes) * 100}%` }}
+        />
+      </div>
+      <span className="font-mono text-xs text-muted-foreground w-10">
+        {((1 - pYes) * 100).toFixed(0)}¢
+      </span>
+    </div>
+  )
+}
+
 export function SignalsSection() {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const cardsRef = useRef<HTMLDivElement>(null)
-  const cursorRef = useRef<HTMLDivElement>(null)
-  const [isHovering, setIsHovering] = useState(false)
-  const [signals, setSignals] = useState<Signal[]>(fallbackSignals)
-  const [source, setSource] = useState<"on-chain" | "curated">("curated")
+  const sectionRef  = useRef<HTMLElement>(null)
+  const headerRef   = useRef<HTMLDivElement>(null)
+  const tableRef    = useRef<HTMLDivElement>(null)
+  const [signals, setSignals]   = useState<Signal[]>(fallbackSignals)
+  const [source, setSource]     = useState<"on-chain" | "curated">("curated")
+  const [hovered, setHovered]   = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -81,188 +81,106 @@ export function SignalsSection() {
         setSignals(live.map(liveToSignal))
         setSource("on-chain")
       })
-      .catch(() => {
-        /* keep fallback */
-      })
-    return () => {
-      cancelled = true
-    }
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
-    if (!sectionRef.current || !cursorRef.current) return
-
-    const section = sectionRef.current
-    const cursor = cursorRef.current
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = section.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-
-      gsap.to(cursor, {
-        x: x,
-        y: y,
-        duration: 0.5,
-        ease: "power3.out",
-      })
-    }
-
-    const handleMouseEnter = () => setIsHovering(true)
-    const handleMouseLeave = () => setIsHovering(false)
-
-    section.addEventListener("mousemove", handleMouseMove)
-    section.addEventListener("mouseenter", handleMouseEnter)
-    section.addEventListener("mouseleave", handleMouseLeave)
-
-    return () => {
-      section.removeEventListener("mousemove", handleMouseMove)
-      section.removeEventListener("mouseenter", handleMouseEnter)
-      section.removeEventListener("mouseleave", handleMouseLeave)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!sectionRef.current || !headerRef.current || !cardsRef.current) return
-
+    if (!sectionRef.current) return
     const ctx = gsap.context(() => {
-      // Header slide in from left
-      gsap.fromTo(
-        headerRef.current,
-        { x: -60, opacity: 0 },
-        {
-          x: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
-          },
-        },
-      )
-
-      const cards = cardsRef.current?.querySelectorAll("article")
-      if (cards) {
-        gsap.fromTo(
-          cards,
-          { x: -100, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 0.8,
-            stagger: 0.2,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: cardsRef.current,
-              start: "top 90%",
-              toggleActions: "play none none reverse",
-            },
-          },
-        )
+      gsap.from(headerRef.current, {
+        x: -50, opacity: 0, duration: 0.8, ease: "power3.out",
+        scrollTrigger: { trigger: headerRef.current, start: "top 85%", toggleActions: "play none none reverse" },
+      })
+      const rows = tableRef.current?.querySelectorAll("tr")
+      if (rows) {
+        gsap.from(rows, {
+          x: -30, opacity: 0, duration: 0.5, stagger: 0.06, ease: "power3.out",
+          scrollTrigger: { trigger: tableRef.current, start: "top 85%", toggleActions: "play none none reverse" },
+        })
       }
     }, sectionRef)
-
     return () => ctx.revert()
-  }, [])
+  }, [signals])
 
   return (
-    <section id="signals" ref={sectionRef} className="relative py-32 pl-6 md:pl-28">
-      <div
-        ref={cursorRef}
-        className={cn(
-          "pointer-events-none absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 z-50",
-          "w-12 h-12 rounded-full border-2 border-accent bg-accent",
-          "transition-opacity duration-300",
-          isHovering ? "opacity-100" : "opacity-0",
-        )}
-      />
-
-      {/* Section header */}
-      <div ref={headerRef} className="mb-16 pr-6 md:pr-12">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">
-          01 / Markets · {source === "on-chain" ? "ON-CHAIN" : "PREVIEW"}
-        </span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">LIVE MARKETS</h2>
+    <section ref={sectionRef} id="signals" className="relative py-28 px-6 md:px-16">
+      {/* Header row */}
+      <div ref={headerRef} className="flex items-end justify-between mb-10">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">01 / Markets</span>
+          <h2 className="mt-2 font-[var(--font-display)] text-5xl md:text-6xl tracking-tight">
+            LIVE MARKETS
+          </h2>
+        </div>
+        <div className="hidden md:flex items-center gap-2 border border-border px-3 py-1.5">
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              source === "on-chain" ? "bg-accent animate-pulse" : "bg-muted-foreground",
+            )}
+          />
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            {source === "on-chain" ? "On-Chain" : "Preview"}
+          </span>
+        </div>
       </div>
 
-      {/* Horizontal scroll container */}
-      <div
-        ref={(el) => {
-          scrollRef.current = el
-          cardsRef.current = el
-        }}
-        className="flex gap-8 overflow-x-auto pb-8 pr-12 scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {signals.map((signal, index) => (
-          <SignalCard key={index} signal={signal} index={index} />
-        ))}
+      {/* Market table */}
+      <div className="border border-border overflow-x-auto">
+        {/* Table header */}
+        <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border bg-secondary/30">
+          <span className="col-span-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">#</span>
+          <span className="col-span-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Market</span>
+          <span className="col-span-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Expiry</span>
+          <span className="col-span-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">YES / NO Price</span>
+          <span className="col-span-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground text-right">Trade</span>
+        </div>
+
+        <div ref={tableRef}>
+          {signals.map((signal, i) => (
+            <div
+              key={i}
+              className={cn(
+                "grid grid-cols-12 gap-4 items-center px-5 py-4 border-b border-border/40 last:border-b-0 transition-colors duration-150 cursor-pointer",
+                hovered === i ? "bg-accent/5" : "bg-transparent hover:bg-secondary/20",
+              )}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <span className="col-span-1 font-mono text-xs text-muted-foreground">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="col-span-4 flex flex-col gap-0.5 min-w-0">
+                <span className={cn("font-mono text-sm truncate transition-colors duration-150", hovered === i ? "text-accent" : "text-foreground")}>
+                  {signal.title}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground truncate">{signal.note}</span>
+              </div>
+              <span className="col-span-2 font-mono text-xs text-muted-foreground">
+                {signal.date}
+              </span>
+              <div className="col-span-4">
+                {typeof signal.priceYes === "number" ? (
+                  <PriceBar pYes={signal.priceYes} />
+                ) : (
+                  <span className="font-mono text-xs text-muted-foreground">—</span>
+                )}
+              </div>
+              <div className="col-span-1 flex justify-end">
+                <span
+                  className={cn(
+                    "font-mono text-[10px] uppercase tracking-widest transition-colors duration-150",
+                    hovered === i ? "text-accent" : "text-muted-foreground",
+                  )}
+                >
+                  →
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
-  )
-}
-
-function SignalCard({
-  signal,
-  index,
-}: {
-  signal: Signal
-  index: number
-}) {
-  return (
-    <article
-      className={cn(
-        "group relative flex-shrink-0 w-80",
-        "transition-transform duration-500 ease-out",
-        "hover:-translate-y-2",
-      )}
-    >
-      {/* Card with paper texture effect */}
-      <div className="relative bg-card border border-border/50 md:border-t md:border-l md:border-r-0 md:border-b-0 p-8">
-        {/* Top torn edge effect */}
-        <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
-
-        {/* Issue number - editorial style */}
-        <div className="flex items-baseline justify-between mb-8">
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-            No. {String(index + 1).padStart(2, "0")}
-          </span>
-          <time className="font-mono text-[10px] text-muted-foreground/60">{signal.date}</time>
-        </div>
-
-        {/* Title */}
-        <h3 className="font-[var(--font-bebas)] text-4xl tracking-tight mb-4 group-hover:text-accent transition-colors duration-300">
-          {signal.title}
-        </h3>
-
-        {/* Divider line */}
-        <div className="w-12 h-px bg-accent/60 mb-6 group-hover:w-full transition-all duration-500" />
-
-        {/* Description */}
-        <p className="font-mono text-xs text-muted-foreground leading-relaxed">{signal.note}</p>
-
-        {/* On-chain YES price, when available */}
-        {typeof signal.priceYes === "number" && (
-          <div className="mt-6 flex items-baseline justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-              YES
-            </span>
-            <span className="font-[var(--font-bebas)] text-3xl tracking-tight text-accent">
-              {(signal.priceYes * 100).toFixed(1)}¢
-            </span>
-          </div>
-        )}
-
-        {/* Bottom right corner fold effect */}
-        <div className="absolute bottom-0 right-0 w-6 h-6 overflow-hidden">
-          <div className="absolute bottom-0 right-0 w-8 h-8 bg-background rotate-45 translate-x-4 translate-y-4 border-t border-l border-border/30" />
-        </div>
-      </div>
-
-      {/* Shadow/depth layer */}
-      <div className="absolute inset-0 -z-10 translate-x-1 translate-y-1 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    </article>
   )
 }

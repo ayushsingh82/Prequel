@@ -7,218 +7,163 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
-const experiments = [
+const categories = [
   {
+    id: "01",
     title: "DeFi Protocols",
-    medium: "Trading Category",
-    description: "Early price discovery for decentralized finance projects before token launch.",
-    span: "col-span-2 row-span-2",
+    tag: "Decentralised Finance",
+    description: "Early price discovery for lending, DEX, yield, and derivatives protocols before token launch.",
+    markets: 4,
+    pct: 38,
   },
   {
+    id: "02",
     title: "Infrastructure",
-    medium: "Layer 1 & 2",
-    description: "Pre-markets for blockchain infrastructure and scaling solutions.",
-    span: "col-span-1 row-span-1",
+    tag: "Layer 1 & 2",
+    description: "Pre-markets for L1s, ZK rollups, and bridge solutions.",
+    markets: 3,
+    pct: 25,
   },
   {
+    id: "03",
     title: "AI & ML",
-    medium: "Emerging Tech",
-    description: "Trade on the future of decentralized AI and machine learning protocols.",
-    span: "col-span-1 row-span-2",
+    tag: "Emerging Tech",
+    description: "Trade on-chain AI inference, data markets, and ML protocol launches.",
+    markets: 2,
+    pct: 17,
   },
   {
+    id: "04",
     title: "Gaming",
-    medium: "Web3 Gaming",
-    description: "Pre-token markets for blockchain gaming and metaverse projects.",
-    span: "col-span-1 row-span-1",
+    tag: "Web3 Gaming",
+    description: "Pre-token markets for blockchain gaming and on-chain metaverse projects.",
+    markets: 1,
+    pct: 8,
   },
   {
+    id: "05",
     title: "NFT & Creator",
-    medium: "Creator Economy",
-    description: "Early markets for NFT platforms and creator economy protocols.",
-    span: "col-span-2 row-span-1",
+    tag: "Creator Economy",
+    description: "Early markets for NFT launchpads, royalty protocols, and creator infrastructure.",
+    markets: 1,
+    pct: 7,
   },
   {
+    id: "06",
     title: "RWA",
-    medium: "Real World Assets",
-    description: "Pre-markets for tokenized real-world asset protocols.",
-    span: "col-span-1 row-span-1",
+    tag: "Real World Assets",
+    description: "Pre-markets for tokenized treasuries, real estate, and commodity protocols.",
+    markets: 1,
+    pct: 5,
   },
 ]
 
 export function WorkSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
+  const headerRef  = useRef<HTMLDivElement>(null)
+  const listRef    = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!sectionRef.current || !headerRef.current || !gridRef.current) return
-
+    if (!sectionRef.current) return
     const ctx = gsap.context(() => {
-      // Header slide in from left
       gsap.fromTo(
         headerRef.current,
-        { x: -60, opacity: 0 },
-        {
-          x: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: "top 90%",
-            toggleActions: "play none none reverse",
-          },
-        },
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out",
+          scrollTrigger: { trigger: headerRef.current, start: "top 92%", toggleActions: "play none none none" } },
       )
-
-      const cards = gridRef.current?.querySelectorAll("article")
-      if (cards && cards.length > 0) {
-        gsap.set(cards, { y: 60, opacity: 0 })
-        gsap.to(cards, {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: gridRef.current,
-            start: "top 90%",
-            toggleActions: "play none none reverse",
-          },
-        })
+      const rows = listRef.current?.children
+      if (rows) {
+        gsap.fromTo(
+          rows,
+          { x: -30, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.45, stagger: 0.07, ease: "power3.out",
+            scrollTrigger: { trigger: listRef.current, start: "top 92%", toggleActions: "play none none none" } },
+        )
       }
     }, sectionRef)
-
     return () => ctx.revert()
   }, [])
 
   return (
-    <section ref={sectionRef} id="work" className="relative py-32 pl-6 md:pl-28 pr-6 md:pr-12">
-      {/* Section header */}
-      <div ref={headerRef} className="mb-16 flex items-end justify-between">
+    <section ref={sectionRef} id="work" className="relative py-28 px-6 md:px-16">
+      {/* Header */}
+      <div ref={headerRef} className="flex items-end justify-between mb-12">
         <div>
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">02 / Categories</span>
-          <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">TRADING CATEGORIES</h2>
+          <h2 className="mt-2 font-[var(--font-display)] text-5xl md:text-6xl tracking-tight">
+            TRADING CATEGORIES
+          </h2>
         </div>
-        <p className="hidden md:block max-w-xs font-mono text-xs text-muted-foreground text-right leading-relaxed">
-          Pre-markets across DeFi, infrastructure, AI, gaming, and emerging protocols.
-        </p>
+        <span className="hidden md:block font-mono text-xs text-muted-foreground">
+          {categories.reduce((a, c) => a + c.markets, 0)} total markets
+        </span>
       </div>
 
-      {/* Asymmetric grid */}
-      <div
-        ref={gridRef}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 auto-rows-[180px] md:auto-rows-[200px]"
-      >
-        {experiments.map((experiment, index) => (
-          <WorkCard key={index} experiment={experiment} index={index} persistHover={index === 0} />
+      {/* Row list */}
+      <div ref={listRef} className="flex flex-col divide-y divide-border">
+        {categories.map((cat) => (
+          <div
+            key={cat.id}
+            className={cn(
+              "group flex items-center gap-6 py-5 px-4 cursor-pointer transition-colors duration-150",
+              active === cat.id ? "bg-accent/5" : "hover:bg-secondary/30",
+            )}
+            onMouseEnter={() => setActive(cat.id)}
+            onMouseLeave={() => setActive(null)}
+          >
+            {/* Number */}
+            <span className="font-mono text-[11px] text-muted-foreground w-6 shrink-0">{cat.id}</span>
+
+            {/* Title + tag */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span
+                  className={cn(
+                    "font-[var(--font-display)] text-2xl md:text-3xl tracking-tight transition-colors duration-150",
+                    active === cat.id ? "text-accent" : "text-foreground",
+                  )}
+                >
+                  {cat.title}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground shrink-0">
+                  {cat.tag}
+                </span>
+              </div>
+              <p className="font-mono text-xs text-muted-foreground mt-1 max-w-lg leading-relaxed">
+                {cat.description}
+              </p>
+            </div>
+
+            {/* Share bar */}
+            <div className="hidden md:flex flex-col items-end gap-1.5 w-36 shrink-0">
+              <div className="w-full h-1 bg-border overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full transition-all duration-500",
+                    active === cat.id ? "bg-accent" : "bg-muted-foreground/40",
+                  )}
+                  style={{ width: `${cat.pct}%` }}
+                />
+              </div>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {cat.markets} market{cat.markets !== 1 ? "s" : ""} · {cat.pct}%
+              </span>
+            </div>
+
+            {/* Arrow */}
+            <span
+              className={cn(
+                "font-mono text-sm transition-all duration-150 shrink-0",
+                active === cat.id ? "text-accent translate-x-1" : "text-muted-foreground/30",
+              )}
+            >
+              →
+            </span>
+          </div>
         ))}
       </div>
     </section>
-  )
-}
-
-function WorkCard({
-  experiment,
-  index,
-  persistHover = false,
-}: {
-  experiment: {
-    title: string
-    medium: string
-    description: string
-    span: string
-  }
-  index: number
-  persistHover?: boolean
-}) {
-  const [isHovered, setIsHovered] = useState(false)
-  const cardRef = useRef<HTMLElement>(null)
-  const [isScrollActive, setIsScrollActive] = useState(false)
-
-  useEffect(() => {
-    if (!persistHover || !cardRef.current) return
-
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: cardRef.current,
-        start: "top 80%",
-        onEnter: () => setIsScrollActive(true),
-      })
-    }, cardRef)
-
-    return () => ctx.revert()
-  }, [persistHover])
-
-  const isActive = isHovered || isScrollActive
-
-  return (
-    <article
-      ref={cardRef}
-      className={cn(
-        "group relative border border-border/40 p-5 flex flex-col justify-between transition-all duration-500 cursor-pointer overflow-hidden",
-        experiment.span,
-        isActive && "border-accent/60",
-      )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Background layer */}
-      <div
-        className={cn(
-          "absolute inset-0 bg-accent/5 transition-opacity duration-500",
-          isActive ? "opacity-100" : "opacity-0",
-        )}
-      />
-
-      {/* Content */}
-      <div className="relative z-10">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          {experiment.medium}
-        </span>
-        <h3
-          className={cn(
-            "mt-3 font-[var(--font-bebas)] text-2xl md:text-4xl tracking-tight transition-colors duration-300",
-            isActive ? "text-accent" : "text-foreground",
-          )}
-        >
-          {experiment.title}
-        </h3>
-      </div>
-
-      {/* Description - reveals on hover */}
-      <div className="relative z-10">
-        <p
-          className={cn(
-            "font-mono text-xs text-muted-foreground leading-relaxed transition-all duration-500 max-w-[280px]",
-            isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
-          )}
-        >
-          {experiment.description}
-        </p>
-      </div>
-
-      {/* Index marker */}
-      <span
-        className={cn(
-          "absolute bottom-4 right-4 font-mono text-[10px] transition-colors duration-300",
-          isActive ? "text-accent" : "text-muted-foreground/40",
-        )}
-      >
-        {String(index + 1).padStart(2, "0")}
-      </span>
-
-      {/* Corner line */}
-      <div
-        className={cn(
-          "absolute top-0 right-0 w-12 h-12 transition-all duration-500",
-          isActive ? "opacity-100" : "opacity-0",
-        )}
-      >
-        <div className="absolute top-0 right-0 w-full h-[1px] bg-accent" />
-        <div className="absolute top-0 right-0 w-[1px] h-full bg-accent" />
-      </div>
-    </article>
   )
 }

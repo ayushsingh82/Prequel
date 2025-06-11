@@ -1,135 +1,126 @@
 "use client"
 
 import { useRef, useEffect } from "react"
-import { HighlightText } from "@/components/highlight-text"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
+const principles = [
+  {
+    id: "01",
+    title: "EARLY DISCOVERY",
+    accent: "EARLY",
+    description:
+      "The market for an asset starts the moment it is announced — not when it lists. Prequel lets traders price pre-token projects 6–12 months before TGE.",
+    stat: "6–12 mo",
+    statLabel: "Before TGE",
+  },
+  {
+    id: "02",
+    title: "LIQUIDITY FIRST",
+    accent: "LIQUIDITY",
+    description:
+      "Constant-product AMM means there is always a price and always a counterparty. Seed collateral bootstraps the market from day one.",
+    stat: "CPMM",
+    statLabel: "AMM model",
+  },
+  {
+    id: "03",
+    title: "MARKET SIGNALS",
+    accent: "SIGNALS",
+    description:
+      "YES price ∈ (0, 1) is the market's real-time probability estimate. Researchers, hedgers, and speculators read the same number.",
+    stat: "0–100¢",
+    statLabel: "YES range",
+  },
+  {
+    id: "04",
+    title: "PROVEN MODEL",
+    accent: "PROVEN",
+    description:
+      "Hyperliquid and Pendle pre-markets found PMF. Prequel applies identical mechanics to the long tail of emerging protocols.",
+    stat: "100%",
+    statLabel: "On-chain settlement",
+  },
+]
+
 export function PrinciplesSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const principlesRef = useRef<HTMLDivElement>(null)
-
-  const principles = [
-    {
-      number: "01",
-      titleParts: [
-        { text: "EARLY", highlight: true },
-        { text: " DISCOVERY", highlight: false },
-      ],
-      description: "Trade on pre-token projects before they launch. Price discovery starts here.",
-      align: "left",
-    },
-    {
-      number: "02",
-      titleParts: [
-        { text: "LIQUIDITY", highlight: true },
-        { text: " FIRST", highlight: false },
-      ],
-      description: "Prediction markets provide continuous liquidity for early-stage projects.",
-      align: "right",
-    },
-    {
-      number: "03",
-      titleParts: [
-        { text: "MARKET ", highlight: false },
-        { text: "SIGNALS", highlight: true },
-      ],
-      description: "Real-time price signals reflect market sentiment and project viability.",
-      align: "left",
-    },
-    {
-      number: "04",
-      titleParts: [
-        { text: "PROVEN ", highlight: false },
-        { text: "MODEL", highlight: true },
-      ],
-      description: "Following the success of Hyperliquid and Pendle pre-markets, Prequel brings this model to prediction markets.",
-      align: "right",
-    },
-  ]
+  const headerRef  = useRef<HTMLDivElement>(null)
+  const gridRef    = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!sectionRef.current || !headerRef.current || !principlesRef.current) return
-
+    if (!sectionRef.current) return
     const ctx = gsap.context(() => {
-      // Header slide in
-      gsap.from(headerRef.current, {
-        x: -60,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: headerRef.current,
-          start: "top 85%",
-          toggleActions: "play none none reverse",
-        },
-      })
-
-      // Each principle slides in from its aligned side
-      const articles = principlesRef.current?.querySelectorAll("article")
-      articles?.forEach((article, index) => {
-        const isRight = principles[index].align === "right"
-        gsap.from(article, {
-          x: isRight ? 80 : -80,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: article,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
-          },
-        })
-      })
+      gsap.fromTo(
+        headerRef.current,
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out",
+          scrollTrigger: { trigger: headerRef.current, start: "top 92%", toggleActions: "play none none none" } },
+      )
+      const cards = gridRef.current?.children
+      if (cards) {
+        gsap.fromTo(
+          cards,
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.55, stagger: 0.1, ease: "power3.out",
+            scrollTrigger: { trigger: gridRef.current, start: "top 90%", toggleActions: "play none none none" } },
+        )
+      }
     }, sectionRef)
-
     return () => ctx.revert()
   }, [])
 
   return (
-    <section ref={sectionRef} id="principles" className="relative py-32 pl-6 md:pl-28 pr-6 md:pr-12">
-      {/* Section header */}
-      <div ref={headerRef} className="mb-24">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">03 / Platform</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">WHY PRE-MARKETS</h2>
+    <section ref={sectionRef} id="principles" className="relative py-28 px-6 md:px-16">
+      {/* Header */}
+      <div ref={headerRef} className="mb-14">
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">03 / Protocol</span>
+        <h2 className="mt-2 font-[var(--font-display)] text-5xl md:text-6xl tracking-tight">
+          WHY PRE-MARKETS
+        </h2>
       </div>
 
-      {/* Staggered principles */}
-      <div ref={principlesRef} className="space-y-24 md:space-y-32">
-        {principles.map((principle, index) => (
+      {/* 2 × 2 grid */}
+      <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border/60">
+        {principles.map((p) => (
           <article
-            key={index}
-            className={`flex flex-col ${
-              principle.align === "right" ? "items-end text-right" : "items-start text-left"
-            }`}
+            key={p.id}
+            className="group relative bg-background p-8 hover:bg-secondary/20 transition-colors duration-200 flex flex-col gap-6"
           >
-            {/* Annotation label */}
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
-              {principle.number} / {principle.titleParts[0].text.split(" ")[0]}
-            </span>
+            {/* Top row: number + stat */}
+            <div className="flex items-start justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                {p.id}
+              </span>
+              <div className="text-right">
+                <div className="font-[var(--font-display)] text-2xl text-accent leading-none">{p.stat}</div>
+                <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mt-0.5">{p.statLabel}</div>
+              </div>
+            </div>
 
-            <h3 className="font-[var(--font-bebas)] text-4xl md:text-6xl lg:text-8xl tracking-tight leading-none">
-              {principle.titleParts.map((part, i) =>
-                part.highlight ? (
-                  <HighlightText key={i} parallaxSpeed={0.6}>
-                    {part.text}
-                  </HighlightText>
-                ) : (
-                  <span key={i}>{part.text}</span>
-                ),
-              )}
+            {/* Title */}
+            <h3 className="font-[var(--font-display)] text-3xl md:text-4xl tracking-tight leading-none">
+              {p.title.split(" ").map((word, i) => (
+                <span
+                  key={i}
+                  className={word === p.accent
+                    ? "text-accent"
+                    : "text-foreground group-hover:text-foreground/80 transition-colors duration-200"}
+                >
+                  {word}{" "}
+                </span>
+              ))}
             </h3>
 
             {/* Description */}
-            <p className="mt-6 max-w-md font-mono text-sm text-muted-foreground leading-relaxed">
-              {principle.description}
+            <p className="font-mono text-xs text-muted-foreground leading-relaxed mt-auto">
+              {p.description}
             </p>
 
-            {/* Decorative line */}
-            <div className={`mt-8 h-[1px] bg-border w-24 md:w-48 ${principle.align === "right" ? "mr-0" : "ml-0"}`} />
+            {/* Bottom accent line reveal */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-accent origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
           </article>
         ))}
       </div>

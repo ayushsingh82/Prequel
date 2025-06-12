@@ -1,188 +1,349 @@
 # Prequel
 
-**Early price discovery for pre-token projects.** Prequel is a prediction-market venue where traders take positions on the outcomes of yet-to-launch crypto projects — token launches, milestones, unlocks — and settle on-chain.
+> **Early price discovery for pre-token projects.**
 
-Built on the same insight that drove Hyperliquid's and Pendle's pre-markets to product-market fit: *the market for an asset starts the moment the asset is announced, not the moment it's listed.*
-
----
-
-## What Prequel does
-
-Pre-token projects today have no clean instrument for price discovery. Discord polls, OTC whispers, and points-program leaderboards stand in for what should be a real market. Prequel replaces that with a venue:
-
-- **Binary outcome markets.** Every market resolves to YES or NO. *"Will Project X mint its TGE by Sep 30?"*, *"Will Protocol Y's points-to-token ratio settle above 1:10?"*, *"Will the airdrop snapshot include holders before block N?"*
-- **Continuous on-chain pricing.** A constant-product AMM (CPMM) holds YES and NO outcome tokens. The spot price of YES — between 0 and 1 — is the market-implied probability of YES at any moment.
-- **Permissionless market creation.** A factory contract lets anyone seed a new market with collateral and a resolution deadline.
-- **Trustless settlement.** Winners redeem 1 USDC per share after the resolver posts the outcome.
-
-The marketing site you see at `/` is the front door; the live market data on it is read directly from the contracts.
+Prequel is an on-chain prediction-market venue where traders take YES / NO positions on the outcomes of yet-to-launch crypto projects — token launches, milestone deadlines, airdrop snapshots — and settle trustlessly against a constant-product AMM.
 
 ---
 
-## How the AMM works (TL;DR)
+## Table of Contents
 
-Each market holds two virtual outcome tokens, **YES** and **NO**, in pool reserves `rY` and `rN`. The invariant `rY × rN = k` is preserved across every trade.
-
-- **1 USDC = 1 YES + 1 NO** (a "complete set"). The contract mints complete sets to the pool whenever a trader buys.
-- **Spot price**: `priceYes = rN / (rY + rN)`, `priceNo = rY / (rY + rN)`. They always sum to 1, so the price *is* the market's probability estimate.
-- **Buy YES with `dx` USDC**: contract pulls `dx`, mints `dx` complete sets into the pool (`rY += dx`, `rN += dx`), then takes YES out of the pool until the invariant is restored. The trader gets `dx + bonus` YES shares — more than `dx` whenever YES was priced below 0.5.
-- **Sell YES**: reverse — solve the CPMM quadratic, return USDC.
-- **Resolve & redeem**: after expiry, the resolver picks YES or NO. Winners call `redeem()` for 1 USDC per share. The seeder reclaims the winning-side pool reserve via `claimSeed()`.
-
-This is the same shape as Polymarket's CPMM; Prequel's contract is a from-scratch v0.1 implementation.
+1. [What it does](#what-it-does)
+2. [How the AMM works](#how-the-amm-works)
+3. [Repository layout](#repository-layout)
+4. [Tech stack](#tech-stack)
+5. [Quickstart](#quickstart)
+6. [Local end-to-end (contracts + UI)](#local-end-to-end)
+7. [Sepolia testnet deploy](#sepolia-testnet-deploy)
+8. [Environment variables](#environment-variables)
+9. [Contract API reference](#contract-api-reference)
+10. [Front-end sections](#front-end-sections)
+11. [Test suite](#test-suite)
+12. [Roadmap](#roadmap)
+13. [Project status](#project-status)
 
 ---
 
-## Architecture
+## What it does
+
+Pre-token projects have no clean instrument for price discovery today. Discord polls, OTC whispers, and points-program leaderboards substitute for what should be a real market. Prequel replaces that:
+
+| Feature | Detail |
+|---|---|
+| **Binary outcome markets** | Every market resolves YES or NO. *"Will Project X mint its TGE by Sep 30?"* |
+| **Continuous on-chain pricing** | CPMM holds YES and NO tokens. Spot price of YES ∈ (0, 1) = market probability. |
+| **Permissionless creation** | Factory contract lets anyone seed a market with collateral + a deadline. |
+| **Trustless settlement** | Winners redeem 1 USDC per share after the resolver posts the outcome. |
+| **Live on-chain reads** | Marketing site pulls market data via `viem` multicall — no wallet required. |
+
+---
+
+## How the AMM works
+
+Each market holds reserves `rY` (YES) and `rN` (NO). The invariant **`rY × rN = k`** is preserved across every trade.
+
+```
+Spot price of YES  =  rN / (rY + rN)
+Spot price of NO   =  rY / (rY + rN)
+priceYes + priceNo = 1  (always)
+```
+
+**Buying YES with `dx` USDC**
+
+1. Contract pulls `dx` USDC from the trader.
+2. Mints `dx` complete sets into the pool: `rY += dx`, `rN += dx`.
+3. Solves the CPMM invariant — pulls YES out until `rY × rN = k` again.
+4. Trader receives `dx + bonus` YES shares (bonus > 0 when YES < 0.5).
+
+**Selling YES** reverses the quadratic: solve for how much USDC to return, adjust reserves.
+
+**Resolution & redemption**
+
+After `expiry`, the resolver calls `resolve(YES | NO)`. Winners call `redeem()` for exactly 1 USDC per share. The seeder recovers the winning-side pool reserve via `claimSeed()`.
+
+> Same shape as Polymarket's CPMM. Prequel's contract is a clean-room v0.1 implementation.
+
+---
+
+## Repository layout
 
 ```
 prequel/
-├── app/                        Next.js 16 marketing site (React 19, RSC)
-├── components/                 Editorial sections, GSAP/Lenis animations
+│
+├── app/                            Next.js 16 pages (React 19, RSC)
+│   ├── layout.tsx                  Root layout, font loading, metadata
+│   ├── page.tsx                    Single-page marketing app
+│   └── globals.css                 Design tokens, dark theme, orange accent
+│
+├── components/
+│   ├── side-nav.tsx                Fixed top navigation bar
+│   ├── hero-section.tsx            Full-viewport hero with ticker + stats bar
+│   ├── signals-section.tsx         Live market data table (on-chain / fallback)
+│   ├── work-section.tsx            Trading category grid
+│   ├── principles-section.tsx      Why pre-markets — 4-card grid
+│   ├── colophon-section.tsx        Footer with links and stack info
+│   ├── split-flap-text.tsx         Mechanical split-flap headline animation
+│   ├── scramble-text.tsx           Hover-triggered character scramble
+│   ├── highlight-text.tsx          Scroll-parallax highlight text
+│   ├── animated-noise.tsx          SVG noise texture overlay
+│   ├── bitmap-chevron.tsx          Pixel-art chevron icon
+│   ├── draw-text.tsx               SVG path draw-on animation
+│   └── smooth-scroll.tsx           Lenis smooth scroll wrapper
+│
 ├── lib/
-│   ├── viem.ts                 Public client, chain selection (Hardhat / Sepolia)
-│   ├── contracts.ts            Factory + market ABIs
-│   └── markets.ts              getLiveMarkets() — multicall read helper
-└── contracts/                  Hardhat 2 workspace (TypeScript + viem)
+│   ├── viem.ts                     Public viem client + chain config
+│   ├── contracts.ts                Factory + PreMarket hand-trimmed ABIs
+│   └── markets.ts                  getLiveMarkets() — multicall read helper
+│
+└── contracts/                      Hardhat 2 workspace
     ├── contracts/
-    │   ├── MockUSDC.sol        6-decimal ERC20 collateral for local testing
-    │   ├── PreMarket.sol       CPMM YES/NO market w/ resolve + redeem + claimSeed
-    │   └── PreMarketFactory.sol Deploys, funds, indexes markets
-    └── test/PreMarket.t.ts     hardhat-toolbox-viem test suite (7 specs)
+    │   ├── MockUSDC.sol            6-decimal ERC20 for local testing
+    │   ├── PreMarket.sol           CPMM binary market (buy/sell/resolve/redeem)
+    │   └── PreMarketFactory.sol    Deploys, funds, and indexes markets
+    ├── scripts/
+    │   └── deploy.ts               Deploy + seed two sample markets, print .env snippet
+    ├── test/
+    │   └── PreMarket.t.ts          12-spec test suite (hardhat-toolbox-viem)
+    └── hardhat.config.ts           Hardhat + localhost + Sepolia + gas reporter
 ```
-
-The Next.js app reads market state via viem only — no wallet connector, no signer. A trading UI with wallet-connect is the next milestone (see *Roadmap*).
 
 ---
 
 ## Tech stack
 
-| Layer        | Choice                                                                 |
-|--------------|------------------------------------------------------------------------|
-| Contracts    | Solidity 0.8.24, Hardhat 2, `@nomicfoundation/hardhat-toolbox-viem`    |
-| Testing      | Mocha + Chai (chai-as-promised), viem clients via hardhat-viem         |
-| Front-end    | Next.js 16 (Turbopack), React 19, Tailwind CSS 4                       |
-| Web3 reads   | viem 2.x — `publicClient.multicall`, no wagmi until writes land        |
-| Animation    | GSAP (ScrollTrigger), Lenis (smooth scroll), Framer Motion             |
-| UI primitives| Radix UI, lucide-react                                                 |
-| Hosting      | Static-rendered marketing page (Vercel-ready)                          |
+| Layer | Technology |
+|---|---|
+| Smart contracts | Solidity 0.8.24, Hardhat 2, `@nomicfoundation/hardhat-toolbox-viem` |
+| Contract testing | Mocha + Chai + viem wallet clients via hardhat-viem |
+| Front-end framework | Next.js 16 (Turbopack), React 19 |
+| Styling | Tailwind CSS 4, IBM Plex Sans / Mono, Bebas Neue |
+| Web3 reads | viem 2.x — `publicClient.multicall`, no wallet signer on marketing page |
+| Animations | GSAP 3 (ScrollTrigger), Lenis (smooth scroll), Framer Motion |
+| UI primitives | Radix UI, lucide-react |
+| Deployment | Vercel (static rendering, zero server) |
 
 ---
 
 ## Quickstart
 
 ### Prerequisites
-- Node.js **20.x** (Hardhat 2 doesn't officially support 21+ — works on 23 but emits a warning)
-- npm 10+
 
-### Front-end
+```
+Node.js  ≥ 20.x   (Hardhat 2 warns on 21+, runs fine on 23)
+npm      ≥ 10.x
+```
+
+### 1 — Install and run the front-end
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
-npm run build        # production build
+npm run dev        # → http://localhost:3000
+npm run build      # production build
 npm run lint
 ```
 
-By default the page renders the curated fallback markets. To wire live on-chain reads, see *Environment variables* below.
+Without any env vars the page renders **curated preview markets**. Wire live data by following the steps below.
 
-### Contracts
+### 2 — Compile and test contracts
 
 ```bash
 cd contracts
 npm install
 npx hardhat compile
-npx hardhat test     # 7 passing
+npx hardhat test
 ```
 
-### Local end-to-end (contracts + UI)
+Expected output:
+
+```
+  PreMarket
+    ✔ deploys with seeded reserves and reports a 50/50 price
+    ✔ buy(YES) raises priceYes, lowers priceNo, respects minOut
+    ✔ sell returns collateral and moves price back toward seed
+    ✔ resolve before expiry reverts; non-resolver reverts
+    ✔ winners redeem 1 USDC per share, losers redeem 0
+    ✔ creator reclaims winning-side seed after resolution
+    ✔ double-redeem is blocked
+    ✔ sell reverts when balance is insufficient
+    ✔ claimSeed reverts for non-creator
+    ✔ buy and sell on NO side work symmetrically
+    ✔ priceYes + priceNo == 1e18 after multiple trades
+
+  PreMarketFactory
+    ✔ creates markets and indexes them
+
+  12 passing
+```
+
+### 3 — Gas report (optional)
 
 ```bash
-# terminal 1 — local chain with funded accounts
+cd contracts
+REPORT_GAS=true npx hardhat test
+```
+
+---
+
+## Local end-to-end
+
+Run the three commands in three separate terminal tabs.
+
+```bash
+# ── Terminal 1: persistent local chain ────────────────────────────────
 cd contracts
 npx hardhat node
+# Hardhat prints 20 funded accounts and listens on http://127.0.0.1:8545
 
-# terminal 2 — deploy contracts (script TBD, see Roadmap)
+# ── Terminal 2: deploy + seed two sample markets ──────────────────────
+cd contracts
+npx hardhat run scripts/deploy.ts --network localhost
+# Prints:
+#   MockUSDC        : 0x…
+#   PreMarketFactory: 0x…
+#   [0] 0x…  YES=50.0¢  "Will Project X launch a token before end of Q3 2025?"
+#   [1] 0x…  YES=50.0¢  "Will Protocol Y airdrop snapshot include holders before block 20000000?"
+#
+#   NEXT_PUBLIC_FACTORY_ADDRESS=0x…   ← copy this
 
-# terminal 3 — front-end with the local RPC
-cd ..
+# ── Terminal 3: Next.js with live on-chain reads ──────────────────────
 NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545 \
 NEXT_PUBLIC_CHAIN_ID=31337 \
-NEXT_PUBLIC_FACTORY_ADDRESS=0x... \
+NEXT_PUBLIC_FACTORY_ADDRESS=<paste address> \
 npm run dev
+# → http://localhost:3000
+# The Live Markets section badge switches from PREVIEW → ON-CHAIN
+```
+
+Or save the three vars to `.env.local` in the project root and just run `npm run dev`.
+
+---
+
+## Sepolia testnet deploy
+
+```bash
+# Set credentials
+export DEPLOYER_PRIVATE_KEY=0x…          # account with Sepolia ETH
+export SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/…
+export ETHERSCAN_API_KEY=…               # optional, for contract verification
+
+cd contracts
+npx hardhat run scripts/deploy.ts --network sepolia
+```
+
+Then set the three `NEXT_PUBLIC_…` vars in Vercel (or `.env.local`) to point at the Sepolia deployment:
+
+```
+NEXT_PUBLIC_RPC_URL=<your Sepolia RPC>
+NEXT_PUBLIC_CHAIN_ID=11155111
+NEXT_PUBLIC_FACTORY_ADDRESS=<factory address from deploy output>
 ```
 
 ---
 
 ## Environment variables
 
-The front-end reads three optional env vars. All are public (`NEXT_PUBLIC_…`) because they're consumed in the browser:
+All vars are `NEXT_PUBLIC_` — they are consumed in the browser.
 
-| Variable                       | Required | Default                  | Notes                                                        |
-|--------------------------------|----------|--------------------------|--------------------------------------------------------------|
-| `NEXT_PUBLIC_RPC_URL`          | optional | `http://127.0.0.1:8545`  | JSON-RPC endpoint for reads                                  |
-| `NEXT_PUBLIC_CHAIN_ID`         | optional | `31337` (Hardhat)        | Set to `11155111` for Sepolia                                |
-| `NEXT_PUBLIC_FACTORY_ADDRESS`  | optional | unset → fallback markets | `PreMarketFactory` deployment address                        |
+| Variable | Required | Default | Notes |
+|---|---|---|---|
+| `NEXT_PUBLIC_RPC_URL` | optional | `http://127.0.0.1:8545` | JSON-RPC endpoint for reads |
+| `NEXT_PUBLIC_CHAIN_ID` | optional | `31337` (Hardhat) | `11155111` for Sepolia |
+| `NEXT_PUBLIC_FACTORY_ADDRESS` | optional | unset → fallback copy | `PreMarketFactory` deployment address |
 
-When `NEXT_PUBLIC_FACTORY_ADDRESS` is unset or the RPC fails, the Live Markets section gracefully falls back to the curated copy bundled with the marketing page. The section header switches between `ON-CHAIN` and `PREVIEW` so it's visible at a glance.
+When `NEXT_PUBLIC_FACTORY_ADDRESS` is unset or the RPC fails, the page falls back to curated copy and shows a `PREVIEW` badge. No errors are thrown.
 
 ---
 
-## Contract API
+## Contract API reference
 
 ### `PreMarketFactory`
 
-| Function                                                | Returns       | Notes                                              |
-|---------------------------------------------------------|---------------|----------------------------------------------------|
-| `createMarket(string question, uint256 expiry, uint256 seed)` | `address`     | Caller pre-approves `seed` collateral.             |
-| `markets(uint256 i)`                                    | `address`     | Indexed access to deployed markets.                |
-| `marketsLength()`                                       | `uint256`     |                                                    |
-| `allMarkets()`                                          | `address[]`   | Convenience for indexers.                          |
+Deployed once per environment. Holds a shared `collateral` (USDC) and `resolver` address.
+
+| Function | Signature | Returns | Notes |
+|---|---|---|---|
+| Create market | `createMarket(string question, uint256 expiry, uint256 seed)` | `address` | Caller pre-approves `seed` to factory. |
+| Read by index | `markets(uint256 i)` | `address` | |
+| Count | `marketsLength()` | `uint256` | |
+| All at once | `allMarkets()` | `address[]` | Convenience for indexers. |
+
+Events: `MarketCreated(address market, address creator, string question, uint256 expiry, uint256 seed)`
+
+---
 
 ### `PreMarket`
 
-| Function                                          | Stateful | Notes                                                    |
-|---------------------------------------------------|---------:|----------------------------------------------------------|
-| `buy(bool yes, uint256 amountIn, uint256 minOut)` |       ✓  | Slippage-protected CPMM buy.                             |
-| `sell(bool yes, uint256 amountIn, uint256 minOut)`|       ✓  | Slippage-protected CPMM sell.                            |
-| `resolve(Outcome o)`                              |       ✓  | Resolver-only, after `expiry`.                           |
-| `redeem()`                                        |       ✓  | Winners only, post-resolution.                           |
-| `claimSeed()`                                     |       ✓  | Creator reclaims the winning-side pool reserve.          |
-| `priceYes()` / `priceNo()`                        |          | 1e18-scaled spot prices; always sum to 1e18.             |
-| `reserveYes` / `reserveNo`                        |          | Public state.                                            |
-| `yesBalance[holder]` / `noBalance[holder]`        |          | Public state.                                            |
+One contract per outcome question.
 
-Events: `Initialized`, `Bought`, `Sold`, `Resolved`, `Redeemed`, `SeedClaimed`.
+| Function | Signature | Stateful | Notes |
+|---|---|---|---|
+| Buy | `buy(bool yes, uint256 amountIn, uint256 minOut)` | ✓ | Slippage-protected CPMM buy. |
+| Sell | `sell(bool yes, uint256 amountIn, uint256 minOut)` | ✓ | Reverse CPMM swap. |
+| Resolve | `resolve(Outcome o)` | ✓ | Resolver-only. Requires `block.timestamp ≥ expiry`. |
+| Redeem | `redeem()` | ✓ | Winners only. Returns 1 USDC per share. |
+| Claim seed | `claimSeed()` | ✓ | Creator reclaims winning-side pool reserve. |
+| Price reads | `priceYes()` / `priceNo()` | — | 1e18-scaled. Always sum to 1e18. |
+| State | `reserveYes` / `reserveNo` | — | Public. |
+| Balances | `yesBalance[addr]` / `noBalance[addr]` | — | Public. |
+
+Events: `Initialized`, `Bought`, `Sold`, `Resolved`, `Redeemed`, `SeedClaimed`
+
+---
+
+### `MockUSDC`
+
+Minimal 6-decimal ERC20 for local testing. The `mint(address, uint256)` function is open — do not deploy to mainnet.
 
 ---
 
 ## Front-end sections
 
-| Section            | ID            | Description                                                                 |
-|--------------------|---------------|-----------------------------------------------------------------------------|
-| Hero               | `#hero`       | Split-flap "PREQUEL" headline, tagline, Start Trading / Market Activity CTAs|
-| Live Markets       | `#signals`    | Horizontal strip of cards; on-chain when configured, curated when not       |
-| Trading Categories | `#work`       | Asymmetric grid of categories (DeFi, Infra, AI, Gaming, NFT, RWA)           |
-| Why Pre-Markets    | `#principles` | Four pillars: Early Discovery, Liquidity First, Market Signals, Proven Model|
-| Colophon           | `#colophon`   | Platform, stack, typography, markets, trading links                         |
+| Section | Anchor | Description |
+|---|---|---|
+| Hero | `#hero` | Split-flap headline, ticker tape, stats bar (markets, liquidity, settlement, chains) |
+| Live Markets | `#signals` | Data table — market question, expiry, YES / NO price bars. On-chain or curated fallback. |
+| Trading Categories | `#work` | 2-column category grid: DeFi, Infra, AI, Gaming, NFT, RWA |
+| Why Pre-Markets | `#principles` | 4-card grid with stat callouts: Early Discovery, Liquidity First, Market Signals, Proven Model |
+| About | `#colophon` | Footer — platform links, contract names, stack, network, copyright |
 
-Side navigation tracks the visible section via IntersectionObserver and scrolls on click.
+The top nav bar tracks the active section via `IntersectionObserver` and underlines the matching link.
+
+---
+
+## Test suite
+
+**12 / 12 passing** · `contracts/test/PreMarket.t.ts` · hardhat-toolbox-viem
+
+| # | Description |
+|---|---|
+| 1 | Deploys with seeded reserves and reports a 50/50 price |
+| 2 | `buy(YES)` raises priceYes, lowers priceNo, respects minOut slippage guard |
+| 3 | `sell` returns collateral and moves price back toward seed |
+| 4 | `resolve` before expiry reverts; non-resolver reverts |
+| 5 | Winners redeem 1 USDC per share; losers get nothing |
+| 6 | Creator reclaims winning-side seed after resolution |
+| 7 | Double-redeem is blocked (balance zeroed after first redeem) |
+| 8 | `sell` reverts when selling more than held balance |
+| 9 | `claimSeed` reverts for non-creator caller |
+| 10 | Buy and sell on NO side work symmetrically |
+| 11 | `priceYes + priceNo == 1e18` invariant holds after multiple trades |
+| 12 | Factory creates multiple markets and indexes them correctly |
 
 ---
 
 ## Roadmap
 
-- **Wallet-connect + trading UI.** Wagmi + RainbowKit modal, a `/trade/[market]` route with a buy/sell panel and position table.
-- **Public testnet deployment.** Hardhat Ignition module for `MockUSDC` + `PreMarketFactory` to Sepolia, plus a verified-contracts task.
-- **LMSR market.** Optional second AMM mode for thin markets where CPMM's slippage curve is too punishing.
-- **Resolver decentralisation.** Replace the single-resolver address with a UMA-style optimistic oracle or a multisig committee.
-- **Indexer + subgraph.** Off-load the multicall read path to a subgraph so the homepage scales beyond ~50 markets.
+- **Wallet-connect + trading UI** — Wagmi + RainbowKit modal, `/trade/[market]` route with buy/sell panel and position table.
+- **Hardhat Ignition deploy module** — deterministic deployment to Sepolia with verified contracts on Etherscan.
+- **LMSR AMM mode** — optional alternative for thin markets where CPMM slippage is too punishing.
+- **Resolver decentralisation** — replace single-address resolver with UMA-style optimistic oracle or multisig committee.
+- **Subgraph indexer** — replace multicall read path so the homepage scales beyond ~50 markets without latency.
 
 ---
 
 ## Project status
 
-**v0.1 / Beta.** Contracts pass their full test suite (7/7). The front-end type-checks and ships a clean production build. No mainnet deployment yet; do not send real funds to any address you find in this repo.
+**v0.1 / Beta** — Contracts pass all 12 tests. Front-end type-checks and ships a clean production build. No mainnet deployment. Do not send real funds to any address in this repository.
 
 ---
 

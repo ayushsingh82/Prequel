@@ -13,12 +13,11 @@ export function TradingPanel() {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
+      {/* Header with Order Type and Leverage */}
       <div className="p-4 border-b border-border/30">
         <h2 className="font-mono text-sm font-semibold text-foreground mb-4">Trade</h2>
-
-        {/* Order Type Selector */}
-        <div className="flex gap-1 mb-4">
+        
+        <div className="flex gap-1 mb-2">
           {["Market", "Limit", "Pro"].map((type) => (
             <button
               key={type}
@@ -35,7 +34,6 @@ export function TradingPanel() {
           ))}
         </div>
 
-        {/* Leverage Selector */}
         <div className="flex gap-1">
           {["Isolated", "3x", "Classic"].map((lev) => (
             <button
@@ -100,9 +98,7 @@ export function TradingPanel() {
 
         {/* Price Input */}
         <div>
-          <label className="block font-mono text-xs text-muted-foreground mb-2">
-            Price (USDC)
-          </label>
+          <label className="block font-mono text-xs text-muted-foreground mb-2">Price (USDC)</label>
           <div className="relative">
             <input
               type="text"
@@ -119,9 +115,7 @@ export function TradingPanel() {
 
         {/* Size Input */}
         <div>
-          <label className="block font-mono text-xs text-muted-foreground mb-2">
-            Size
-          </label>
+          <label className="block font-mono text-xs text-muted-foreground mb-2">Size</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -169,17 +163,8 @@ export function TradingPanel() {
             <span className="font-mono text-xs text-muted-foreground">Liquidation Price</span>
             <span className="font-mono text-xs text-foreground">N/A</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="font-mono text-xs text-muted-foreground">Order Value</span>
-            <span className="font-mono text-xs text-foreground">N/A</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="font-mono text-xs text-muted-foreground">Margin Required</span>
-            <span className="font-mono text-xs text-foreground">N/A</span>
-          </div>
         </div>
       </div>
     </div>
   )
 }
-

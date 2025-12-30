@@ -75,18 +75,18 @@ export function ColophonSection() {
     >
       {/* Section header */}
       <div ref={headerRef} className="mb-16">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">04 / Colophon</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">CREDITS</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">04 / About</span>
+        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">PLATFORM</h2>
       </div>
 
       {/* Multi-column layout */}
       <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 md:gap-12">
-        {/* Design */}
+        {/* Platform */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Design</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Platform</h4>
           <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Signal Studio</li>
-            <li className="font-mono text-xs text-foreground/80">Interface Lab</li>
+            <li className="font-mono text-xs text-foreground/80">Kalshi</li>
+            <li className="font-mono text-xs text-foreground/80">Pre-Markets</li>
           </ul>
         </div>
 
@@ -110,25 +110,25 @@ export function ColophonSection() {
           </ul>
         </div>
 
-        {/* Location */}
+        {/* Markets */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Location</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Markets</h4>
           <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Remote</li>
-            <li className="font-mono text-xs text-foreground/80">Everywhere</li>
+            <li className="font-mono text-xs text-foreground/80">Pre-Token</li>
+            <li className="font-mono text-xs text-foreground/80">Price Discovery</li>
           </ul>
         </div>
 
-        {/* Contact */}
+        {/* Trading */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Contact</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Trading</h4>
           <ul className="space-y-2">
             <li>
               <a
-                href="mailto:hello@signal.studio"
+                href="#"
                 className="font-mono text-xs text-foreground/80 hover:text-accent transition-colors duration-200"
               >
-                Email
+                Start Trading
               </a>
             </li>
             <li>
@@ -136,7 +136,7 @@ export function ColophonSection() {
                 href="#"
                 className="font-mono text-xs text-foreground/80 hover:text-accent transition-colors duration-200"
               >
-                Twitter/X
+                Market Docs
               </a>
             </li>
           </ul>
@@ -158,9 +158,9 @@ export function ColophonSection() {
         className="mt-24 pt-8 border-t border-border/20 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-          © 2025 Signal. All rights reserved.
+          © 2025 Kalshi Pre-Markets. All rights reserved.
         </p>
-        <p className="font-mono text-[10px] text-muted-foreground">Designed with intention. Built with precision.</p>
+        <p className="font-mono text-[10px] text-muted-foreground">Early price discovery for pre-token projects.</p>
       </div>
     </section>
   )

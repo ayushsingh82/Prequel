@@ -9,39 +9,39 @@ gsap.registerPlugin(ScrollTrigger)
 
 const experiments = [
   {
-    title: "Project Lattice",
-    medium: "Interface Study",
-    description: "Structural framework for adaptive layouts in dynamic content systems.",
+    title: "DeFi Protocols",
+    medium: "Trading Category",
+    description: "Early price discovery for decentralized finance projects before token launch.",
     span: "col-span-2 row-span-2",
   },
   {
-    title: "Signal Field",
-    medium: "Agent Orchestration",
-    description: "Autonomous coordination layer for multi-agent environments.",
+    title: "Infrastructure",
+    medium: "Layer 1 & 2",
+    description: "Pre-markets for blockchain infrastructure and scaling solutions.",
     span: "col-span-1 row-span-1",
   },
   {
-    title: "Silent Agent",
-    medium: "Visual System",
-    description: "Non-intrusive interface patterns for ambient computing.",
+    title: "AI & ML",
+    medium: "Emerging Tech",
+    description: "Trade on the future of decentralized AI and machine learning protocols.",
     span: "col-span-1 row-span-2",
   },
   {
-    title: "Noir Grid",
-    medium: "Typography",
-    description: "High-contrast typographic system for editorial interfaces.",
+    title: "Gaming",
+    medium: "Web3 Gaming",
+    description: "Pre-token markets for blockchain gaming and metaverse projects.",
     span: "col-span-1 row-span-1",
   },
   {
-    title: "Echo Chamber",
-    medium: "Audio-Visual",
-    description: "Generative soundscapes mapped to interface interactions.",
+    title: "NFT & Creator",
+    medium: "Creator Economy",
+    description: "Early markets for NFT platforms and creator economy protocols.",
     span: "col-span-2 row-span-1",
   },
   {
-    title: "Void Protocol",
-    medium: "Experimental",
-    description: "Negative space as primary interaction medium.",
+    title: "RWA",
+    medium: "Real World Assets",
+    description: "Pre-markets for tokenized real-world asset protocols.",
     span: "col-span-1 row-span-1",
   },
 ]
@@ -98,11 +98,11 @@ export function WorkSection() {
       {/* Section header */}
       <div ref={headerRef} className="mb-16 flex items-end justify-between">
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">02 / Experiments</span>
-          <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">SELECTED WORK</h2>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">02 / Categories</span>
+          <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">TRADING CATEGORIES</h2>
         </div>
         <p className="hidden md:block max-w-xs font-mono text-xs text-muted-foreground text-right leading-relaxed">
-          Studies across interface design, agent systems, and visual computation.
+          Pre-markets across DeFi, infrastructure, AI, gaming, and emerging protocols.
         </p>
       </div>
 

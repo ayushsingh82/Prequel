@@ -16,37 +16,37 @@ export function PrinciplesSection() {
     {
       number: "01",
       titleParts: [
-        { text: "INTERFACE", highlight: true },
-        { text: " MINIMALISM", highlight: false },
+        { text: "EARLY", highlight: true },
+        { text: " DISCOVERY", highlight: false },
       ],
-      description: "Reduce until only the essential remains. Every element earns its place.",
+      description: "Trade on pre-token projects before they launch. Price discovery starts here.",
       align: "left",
     },
     {
       number: "02",
       titleParts: [
-        { text: "SYSTEMS", highlight: true },
-        { text: " OVER SCREENS", highlight: false },
+        { text: "LIQUIDITY", highlight: true },
+        { text: " FIRST", highlight: false },
       ],
-      description: "Design behaviors, not just layouts. Build logic that scales.",
+      description: "Prediction markets provide continuous liquidity for early-stage projects.",
       align: "right",
     },
     {
       number: "03",
       titleParts: [
-        { text: "CONTROLLED ", highlight: false },
-        { text: "TENSION", highlight: true },
+        { text: "MARKET ", highlight: false },
+        { text: "SIGNALS", highlight: true },
       ],
-      description: "Balance between restraint and expression. Confidence without excess.",
+      description: "Real-time price signals reflect market sentiment and project viability.",
       align: "left",
     },
     {
       number: "04",
       titleParts: [
-        { text: "SIGNAL ", highlight: false },
-        { text: "CLARITY", highlight: true },
+        { text: "PROVEN ", highlight: false },
+        { text: "MODEL", highlight: true },
       ],
-      description: "Communication that cuts through noise. Precision in every interaction.",
+      description: "Following the success of Hyperliquid and Pendle pre-markets, Kalshi brings this model to prediction markets.",
       align: "right",
     },
   ]
@@ -93,8 +93,8 @@ export function PrinciplesSection() {
     <section ref={sectionRef} id="principles" className="relative py-32 pl-6 md:pl-28 pr-6 md:pr-12">
       {/* Section header */}
       <div ref={headerRef} className="mb-24">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">03 / Principles</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">HOW WE WORK</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">03 / Platform</span>
+        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">WHY PRE-MARKETS</h2>
       </div>
 
       {/* Staggered principles */}

@@ -21,13 +21,13 @@ export default function TradePage() {
               <TradingChart />
             </div>
             {/* Account Tabs below chart */}
-            <div className="h-64 border-t border-foreground/20">
+            <div className="h-48 mt-4 border-t border-foreground/20">
               <AccountTabs />
             </div>
           </div>
 
           {/* Right Panel - Trading Interface */}
-          <div className="w-96 border-l border-foreground/20 overflow-y-auto">
+          <div className="w-80 border-l border-foreground/20 overflow-y-auto">
             <TradingPanel />
           </div>
         </div>

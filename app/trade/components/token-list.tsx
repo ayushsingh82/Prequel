@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 const tokens = [
@@ -20,6 +21,11 @@ export function TokenList() {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-border/30">
+        <Link href="/" className="block mb-3">
+          <h1 className="font-mono text-lg font-bold text-accent hover:text-accent/80 transition-colors">
+            PREKALSHI
+          </h1>
+        </Link>
         <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">Markets</h2>
         <input
           type="text"

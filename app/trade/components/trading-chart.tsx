@@ -1,9 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 const timeIntervals = ["15m", "30m", "1h", "4h", "1d"]
+
+const intervalMap: Record<string, string> = {
+  "15m": "15",
+  "30m": "30",
+  "1h": "60",
+  "4h": "240",
+  "1d": "D",
+}
 
 const orderBookData = {
   asks: [
@@ -34,6 +42,46 @@ const orderBookData = {
 export function TradingChart() {
   const [selectedInterval, setSelectedInterval] = useState("15m")
   const [activeTab, setActiveTab] = useState<"orderbook" | "trades">("orderbook")
+  const widgetContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!widgetContainerRef.current) return
+
+    // Clear previous widget
+    widgetContainerRef.current.innerHTML = ""
+
+    // Create TradingView widget
+    const script = document.createElement("script")
+    script.src = "https://s3.tradingview.com/tv.js"
+    script.async = true
+    script.onload = () => {
+      if (window.TradingView && widgetContainerRef.current) {
+        new window.TradingView.widget({
+          autosize: true,
+          symbol: "BINANCE:ETHUSDT",
+          interval: intervalMap[selectedInterval] || "15",
+          timezone: "Etc/UTC",
+          theme: "dark",
+          style: "1",
+          locale: "en",
+          toolbar_bg: "#1a1a1a",
+          enable_publishing: false,
+          hide_top_toolbar: true,
+          hide_legend: false,
+          save_image: false,
+          container_id: widgetContainerRef.current.id,
+        })
+      }
+    }
+
+    document.body.appendChild(script)
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script)
+      }
+    }
+  }, [selectedInterval])
 
   return (
     <div className="h-full flex bg-background">
@@ -42,10 +90,10 @@ export function TradingChart() {
         {/* Chart Header */}
         <div className="p-4 border-b border-border/30 flex items-center justify-between">
           <div>
-            <h2 className="font-mono text-sm font-semibold text-foreground">PRE/USDC</h2>
+            <h2 className="font-mono text-sm font-semibold text-foreground">ETH/USDT</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="font-mono text-lg text-foreground">$0.24</span>
-              <span className="font-mono text-sm text-green-500">+15.2%</span>
+              <span className="font-mono text-lg text-foreground">$2,450</span>
+              <span className="font-mono text-sm text-green-500">+2.5%</span>
             </div>
           </div>
 
@@ -68,35 +116,24 @@ export function TradingChart() {
           </div>
         </div>
 
-        {/* Chart Area */}
-        <div className="flex-1 relative bg-muted/5 flex items-center justify-center">
-          <div className="text-center">
-            <div className="font-mono text-sm text-muted-foreground mb-2">Trading View Chart</div>
-            <div className="font-mono text-xs text-muted-foreground/60">
-              Chart integration placeholder ({selectedInterval} interval)
-            </div>
-          </div>
-
-          {/* Placeholder chart visualization */}
-          <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 200" preserveAspectRatio="none">
-            <polyline
-              points="0,180 50,160 100,140 150,120 200,100 250,110 300,90 350,80 400,70"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-          </svg>
+        {/* Chart Area - TradingView */}
+        <div className="flex-1 relative bg-muted/5">
+          <div
+            id="tradingview-widget"
+            ref={widgetContainerRef}
+            className="w-full h-full"
+          />
         </div>
       </div>
 
-      {/* Right Sidebar - Order Book */}
-      <div className="w-80 border-l border-foreground/20 flex flex-col">
+      {/* Right Sidebar - Order Book (narrower) */}
+      <div className="w-64 border-l border-foreground/20 flex flex-col">
         {/* Tabs */}
         <div className="flex border-b border-border/30">
           <button
             onClick={() => setActiveTab("orderbook")}
             className={cn(
-              "flex-1 px-4 py-2 font-mono text-xs transition-colors",
+              "flex-1 px-3 py-2 font-mono text-xs transition-colors",
               activeTab === "orderbook"
                 ? "bg-accent/20 text-accent border-b-2 border-accent"
                 : "text-muted-foreground hover:text-foreground"
@@ -107,7 +144,7 @@ export function TradingChart() {
           <button
             onClick={() => setActiveTab("trades")}
             className={cn(
-              "flex-1 px-4 py-2 font-mono text-xs transition-colors",
+              "flex-1 px-3 py-2 font-mono text-xs transition-colors",
               activeTab === "trades"
                 ? "bg-accent/20 text-accent border-b-2 border-accent"
                 : "text-muted-foreground hover:text-foreground"
@@ -120,11 +157,11 @@ export function TradingChart() {
         {activeTab === "orderbook" ? (
           <div className="flex-1 overflow-y-auto">
             {/* Header */}
-            <div className="p-2 border-b border-border/30">
-              <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-1">
+            <div className="px-2 py-1 border-b border-border/30">
+              <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
                 <div className="flex-1 text-right">Price</div>
-                <div className="flex-1 text-right">Size (USDC)</div>
-                <div className="flex-1 text-right">Total (USDC)</div>
+                <div className="flex-1 text-right">Size</div>
+                <div className="flex-1 text-right">Total</div>
               </div>
             </div>
 
@@ -133,11 +170,11 @@ export function TradingChart() {
               {orderBookData.asks.map((order, i) => (
                 <div
                   key={`ask-${i}`}
-                  className="flex items-center justify-between p-1 hover:bg-red-500/10 cursor-pointer"
+                  className="flex items-center justify-between px-2 py-0.5 hover:bg-red-500/10 cursor-pointer"
                 >
-                  <div className="flex-1 text-right font-mono text-xs text-red-500">{order.price.toFixed(5)}</div>
-                  <div className="flex-1 text-right font-mono text-xs text-foreground">{order.size.toLocaleString()}</div>
-                  <div className="flex-1 text-right font-mono text-xs text-muted-foreground">
+                  <div className="flex-1 text-right font-mono text-[10px] text-red-500">{order.price.toFixed(5)}</div>
+                  <div className="flex-1 text-right font-mono text-[10px] text-foreground">{order.size.toLocaleString()}</div>
+                  <div className="flex-1 text-right font-mono text-[10px] text-muted-foreground">
                     {order.total.toLocaleString()}
                   </div>
                 </div>
@@ -145,12 +182,12 @@ export function TradingChart() {
             </div>
 
             {/* Spread */}
-            <div className="p-2 border-y border-border/30 bg-muted/20">
+            <div className="px-2 py-1 border-y border-border/30 bg-muted/20">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-muted-foreground">Spread</span>
+                <span className="font-mono text-[10px] text-muted-foreground">Spread</span>
                 <div className="text-right">
-                  <div className="font-mono text-xs text-foreground">0.00050</div>
-                  <div className="font-mono text-[10px] text-muted-foreground">0.208%</div>
+                  <div className="font-mono text-[10px] text-foreground">0.00050</div>
+                  <div className="font-mono text-[9px] text-muted-foreground">0.208%</div>
                 </div>
               </div>
             </div>
@@ -160,11 +197,11 @@ export function TradingChart() {
               {orderBookData.bids.map((order, i) => (
                 <div
                   key={`bid-${i}`}
-                  className="flex items-center justify-between p-1 hover:bg-green-500/10 cursor-pointer"
+                  className="flex items-center justify-between px-2 py-0.5 hover:bg-green-500/10 cursor-pointer"
                 >
-                  <div className="flex-1 text-right font-mono text-xs text-green-500">{order.price.toFixed(5)}</div>
-                  <div className="flex-1 text-right font-mono text-xs text-foreground">{order.size.toLocaleString()}</div>
-                  <div className="flex-1 text-right font-mono text-xs text-muted-foreground">
+                  <div className="flex-1 text-right font-mono text-[10px] text-green-500">{order.price.toFixed(5)}</div>
+                  <div className="flex-1 text-right font-mono text-[10px] text-foreground">{order.size.toLocaleString()}</div>
+                  <div className="flex-1 text-right font-mono text-[10px] text-muted-foreground">
                     {order.total.toLocaleString()}
                   </div>
                 </div>
@@ -180,4 +217,12 @@ export function TradingChart() {
     </div>
   )
 }
+
+// Extend Window interface for TradingView
+declare global {
+  interface Window {
+    TradingView: any
+  }
+}
+
 

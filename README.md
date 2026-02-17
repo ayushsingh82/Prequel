@@ -1,12 +1,12 @@
-# PreKalshi
+# NJU
 
-**Early price discovery for pre-token projects.** A modern marketing site for Kalshi Pre-Markets—prediction markets as the default venue for pre-token price discovery, in the spirit of Hyperliquid and Pendle pre-markets.
+**Early price discovery for pre-token projects.** A modern marketing site for **NJU**—prediction markets as the default venue for pre-token price discovery, in the spirit of Hyperliquid and Pendle pre-markets.
 
 ---
 
 ## Overview
 
-This repository contains the front-end for **Kalshi Pre-Markets** (v0.1 / Pre-Markets Beta): a single-page marketing site built with Next.js. The application presents the product value proposition, live markets, trading categories, platform principles, and platform colophon in one scrollable experience with smooth scroll, scroll-triggered animations, and an editorial visual style.
+This repository contains the front-end for **NJU** (v0.1 / Beta): a single-page marketing site built with Next.js. The application presents the product value proposition, live markets, trading categories, platform principles, and platform colophon in one scrollable experience with smooth scroll, scroll-triggered animations, and an editorial visual style.
 
 ---
 
@@ -114,4 +114,4 @@ Side navigation tracks the visible section (IntersectionObserver) and scrolls to
 
 ## License
 
-Proprietary. © 2025 Kalshi Pre-Markets. All rights reserved.
+Proprietary. © 2025 NJU. All rights reserved.

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kalshi Pre-Markets | Early Price Discovery",
-  description: "Trade pre-token projects on Kalshi. The default venue for early price discovery in prediction markets.",
+  title: "NJU | Early Price Discovery",
+  description: "Trade pre-token projects on NJU. The default venue for early price discovery in prediction markets.",
 };
 
 export default function RootLayout({

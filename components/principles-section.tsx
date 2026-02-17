@@ -46,7 +46,7 @@ export function PrinciplesSection() {
         { text: "PROVEN ", highlight: false },
         { text: "MODEL", highlight: true },
       ],
-      description: "Following the success of Hyperliquid and Pendle pre-markets, Kalshi brings this model to prediction markets.",
+      description: "Following the success of Hyperliquid and Pendle pre-markets, NJU brings this model to prediction markets.",
       align: "right",
     },
   ]

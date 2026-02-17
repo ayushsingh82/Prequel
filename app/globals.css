@@ -136,17 +136,3 @@
   background: oklch(0.7 0.2 45);
   color: oklch(0.08 0 0);
 }
-
-/* Ticker scroll animation */
-@keyframes ticker-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-ticker-scroll {
-  animation: ticker-scroll 60s linear infinite;
-}

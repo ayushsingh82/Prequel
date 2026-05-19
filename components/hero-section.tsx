@@ -48,7 +48,7 @@ export function HeroSection() {
       <div ref={contentRef} className="flex-1 w-full">
         <SplitFlapAudioProvider>
           <div className="relative">
-            <SplitFlapText text="NJU" speed={80} />
+            <SplitFlapText text="PREQUEL" speed={80} />
             <div className="mt-4">
               <SplitFlapMuteToggle />
             </div>
@@ -60,7 +60,7 @@ export function HeroSection() {
         </h2>
 
         <p className="mt-12 max-w-md font-mono text-sm text-muted-foreground leading-relaxed">
-          Pre-token projects lack tradeable instruments today. NJU makes prediction markets the default venue for early price discovery, just as Hyperliquid and Pendle pre-markets found PMF.
+          Pre-token projects lack tradeable instruments today. Prequel makes prediction markets the default venue for early price discovery, just as Hyperliquid and Pendle pre-markets found PMF.
         </p>
 
         <div className="mt-16 flex items-center gap-8">
@@ -83,7 +83,7 @@ export function HeroSection() {
       {/* Floating info tag */}
       <div className="absolute bottom-8 right-8 md:bottom-12 md:right-12">
         <div className="border border-border px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          v.01 / NJU Beta
+          v.01 / Prequel Beta
         </div>
       </div>
     </section>

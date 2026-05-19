@@ -1,4 +1,4 @@
-# NJU — Completion Plan
+# Prequel — Completion Plan
 
 The marketing site is complete; the on-chain layer that the UI talks about ("Live Markets", "Start Trading", "pre-token price discovery") does not exist yet. This plan adds the missing pieces: a Hardhat workspace with prediction-market contracts + tests, then wires the front-end to read live data through **viem**.
 

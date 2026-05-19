@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NJU | Early Price Discovery",
-  description: "Trade pre-token projects on NJU. The default venue for early price discovery in prediction markets.",
+  title: "Prequel | Early Price Discovery for Pre-Token Projects",
+  description: "Prequel is a prediction-market venue for pre-token price discovery. Trade YES/NO outcomes on token launches, milestones, and unlocks, settled on-chain.",
 };
 
 export default function RootLayout({

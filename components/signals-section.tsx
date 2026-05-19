@@ -4,10 +4,19 @@ import { useRef, useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { getLiveMarkets, type LiveMarket } from "@/lib/markets"
 
 gsap.registerPlugin(ScrollTrigger)
 
-const signals = [
+type Signal = {
+  date: string
+  title: string
+  note: string
+  priceYes?: number
+  address?: string
+}
+
+const fallbackSignals: Signal[] = [
   {
     date: "2025.01.15",
     title: "AI Protocol Launch",
@@ -35,6 +44,25 @@ const signals = [
   },
 ]
 
+function formatExpiry(unix: number) {
+  const d = new Date(unix * 1000)
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
+    d.getDate(),
+  ).padStart(2, "0")}`
+}
+
+function liveToSignal(m: LiveMarket): Signal {
+  return {
+    date: formatExpiry(m.expiry),
+    title: m.question,
+    note: m.resolved
+      ? "Market resolved. Final price reflected below."
+      : "On-chain pre-market. Price reflects current YES probability.",
+    priceYes: m.priceYes,
+    address: m.address,
+  }
+}
+
 export function SignalsSection() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
@@ -42,6 +70,24 @@ export function SignalsSection() {
   const cardsRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
   const [isHovering, setIsHovering] = useState(false)
+  const [signals, setSignals] = useState<Signal[]>(fallbackSignals)
+  const [source, setSource] = useState<"on-chain" | "curated">("curated")
+
+  useEffect(() => {
+    let cancelled = false
+    getLiveMarkets()
+      .then((live) => {
+        if (cancelled || !live || live.length === 0) return
+        setSignals(live.map(liveToSignal))
+        setSource("on-chain")
+      })
+      .catch(() => {
+        /* keep fallback */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!sectionRef.current || !cursorRef.current) return
@@ -135,7 +181,9 @@ export function SignalsSection() {
 
       {/* Section header */}
       <div ref={headerRef} className="mb-16 pr-6 md:pr-12">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">01 / Markets</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">
+          01 / Markets · {source === "on-chain" ? "ON-CHAIN" : "PREVIEW"}
+        </span>
         <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">LIVE MARKETS</h2>
       </div>
 
@@ -160,7 +208,7 @@ function SignalCard({
   signal,
   index,
 }: {
-  signal: { date: string; title: string; note: string }
+  signal: Signal
   index: number
 }) {
   return (
@@ -194,6 +242,18 @@ function SignalCard({
 
         {/* Description */}
         <p className="font-mono text-xs text-muted-foreground leading-relaxed">{signal.note}</p>
+
+        {/* On-chain YES price, when available */}
+        {typeof signal.priceYes === "number" && (
+          <div className="mt-6 flex items-baseline justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+              YES
+            </span>
+            <span className="font-[var(--font-bebas)] text-3xl tracking-tight text-accent">
+              {(signal.priceYes * 100).toFixed(1)}¢
+            </span>
+          </div>
+        )}
 
         {/* Bottom right corner fold effect */}
         <div className="absolute bottom-0 right-0 w-6 h-6 overflow-hidden">
